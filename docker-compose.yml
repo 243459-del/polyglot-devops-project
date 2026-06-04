@@ -1,0 +1,52 @@
+version: '3.8'
+
+networks:
+  polyglot-net:
+    driver: bridge
+
+services:
+  # 1. Redis Support Service (Queue)
+  redis:
+    image: redis:alpine
+    container_name: polyglot-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - polyglot-net
+
+  # 2. ASP.NET Core Backend API
+  backend:
+    build:
+      context: ./backend-dotnet
+      dockerfile: Dockerfile
+    container_name: polyglot-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    networks:
+      - polyglot-net
+
+  # 3. Python Worker Service
+  worker:
+    build:
+      context: ./worker-python
+      dockerfile: Dockerfile
+    container_name: polyglot-worker
+    depends_on:
+      - redis
+    networks:
+      - polyglot-net
+
+  # 4. JavaScript Frontend UI
+  frontend:
+    build:
+      context: ./frontend-js
+      dockerfile: Dockerfile
+    container_name: polyglot-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - polyglot-net

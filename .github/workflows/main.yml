@@ -1,0 +1,43 @@
+name: Azure VM Deployment Pipeline
+
+on:
+  push:
+    branches: [ "main" ] # Agar aapki branch master hai toh yahan master likhein
+
+jobs:
+  # Stage 1: Build and Test
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (Ya jo bhi aapki language hai)
+        uses: actions/setup-node@v4
+        with:
+          node-node-version: '20'
+
+      - name: Install Dependencies & Run Tests
+        run: |
+          npm install
+          # npm test # Agar tests hain toh ye line un-comment kar dein
+
+  # Stage 2: Deploy to Azure VM
+  deploy-to-azure:
+    needs: build-and-test # Yeh stage tabhi chalegi jab build-and-test success hogi
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Azure VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_IP }}
+          username: ${{ secrets.AZURE_VM_USER }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          script: |
+            cd /var/www/my-app # Aapka VM par project path
+            git pull origin main
+            npm install --production
+            pm2 restart all # Ya jo bhi aap server reload karne ke liye use karte hain
