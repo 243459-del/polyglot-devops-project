@@ -189,6 +189,12 @@
             flex-direction: column;
             justify-content: space-between;
             min-height: 200px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .task-card:hover {
@@ -254,10 +260,8 @@
         .btn-complete:hover { color: #34d399; }
         .btn-delete:hover { color: #f87171; }
 
-        /* Responsive Layout adjustment */
         @media (max-width: 768px) {
             .navbar { padding: 15px 4%; }
-            .nav-links { display: none; }
             .header-section h1 { font-size: 32px; }
         }
     </style>
@@ -269,13 +273,10 @@
 
     <nav class="navbar">
         <div class="nav-logo">
-            <i class="fa-solid to-circle fa-cubes"></i> ProTask.io
+            <i class="fa-solid fa-cubes"></i> ProTask.io
         </div>
         <ul class="nav-links">
             <li><a href="#" class="active">Dashboard</a></li>
-            <li><a href="#">Analytics</a></li>
-            <li><a href="#">Team Space</a></li>
-            <li><a href="#">Settings</a></li>
         </ul>
         <button class="nav-btn"><i class="fa-solid fa-plus"></i> New Space</button>
     </nav>
@@ -288,15 +289,15 @@
         </div>
 
         <div class="task-input-container">
-            <input type="text" placeholder="Type a new high-priority milestone task here...">
-            <button class="nav-btn" style="border-radius: 10px; padding: 0 25px;">Add Task</button>
+            <input type="text" id="task-input" placeholder="Type a new high-priority milestone task here...">
+            <button class="nav-btn" id="add-task-btn" style="border-radius: 10px; padding: 0 25px;">Add Task</button>
         </div>
 
         <div class="grid-title">
             <i class="fa-solid fa-layer-group"></i> Active Deployment Tasks
         </div>
 
-        <div class="cards-grid">
+        <div class="cards-grid" id="cards-container">
             
             <div class="task-card">
                 <div class="card-badge badge-high">High Priority</div>
@@ -304,32 +305,8 @@
                 <div class="card-footer">
                     <div class="card-date"><i class="fa-regular fa-calendar"></i> June 04, 2026</div>
                     <div class="card-actions">
-                        <button class="action-btn btn-complete"><i class="fa-regular fa-circle-check"></i></button>
-                        <button class="action-btn btn-delete"><i class="fa-regular fa-trash-can"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="task-card">
-                <div class="card-badge badge-medium">In Progress</div>
-                <div class="card-text">Fix Docker client-daemon connection API version issue using static environment patch variable.</div>
-                <div class="card-footer">
-                    <div class="card-date"><i class="fa-regular fa-calendar"></i> June 04, 2026</div>
-                    <div class="card-actions">
-                        <button class="action-btn btn-complete"><i class="fa-regular fa-circle-check"></i></button>
-                        <button class="action-btn btn-delete"><i class="fa-regular fa-trash-can"></i></button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="task-card">
-                <div class="card-badge badge-low">Completed</div>
-                <div class="card-text">Provision an active Linux virtual machine instance on Azure cloud infrastructure platform.</div>
-                <div class="card-footer">
-                    <div class="card-date"><i class="fa-regular fa-calendar"></i> June 03, 2026</div>
-                    <div class="card-actions">
-                        <button class="action-btn btn-complete" style="color: #34d399;"><i class="fa-solid fa-circle-check"></i></button>
-                        <button class="action-btn btn-delete"><i class="fa-regular fa-trash-can"></i></button>
+                        <button class="action-btn btn-complete" onclick="toggleComplete(this)"><i class="fa-regular fa-circle-check"></i></button>
+                        <button class="action-btn btn-delete" onclick="deleteCard(this)"><i class="fa-regular fa-trash-can"></i></button>
                     </div>
                 </div>
             </div>
@@ -337,6 +314,85 @@
         </div>
 
     </div>
+
+    <script>
+        const taskInput = document.getElementById('task-input');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        const cardsContainer = document.getElementById('cards-container');
+
+        // Task add karne ka function
+        function createNewTask() {
+            const taskText = taskInput.value.trim();
+            
+            if (taskText === "") {
+                alert("Please type a task first!");
+                return;
+            }
+
+            // Current date nikalne ke liye
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            const today = new Date().toLocaleDateString('en-US', options);
+
+            // Naya Card dynamic HTML string
+            const cardHTML = `
+                <div class="task-card">
+                    <div class="card-badge badge-medium">Active Task</div>
+                    <div class="card-text">${taskText}</div>
+                    <div class="card-footer">
+                        <div class="card-date"><i class="fa-regular fa-calendar"></i> ${today}</div>
+                        <div class="card-actions">
+                            <button class="action-btn btn-complete" onclick="toggleComplete(this)"><i class="fa-regular fa-circle-check"></i></button>
+                            <button class="action-btn btn-delete" onclick="deleteCard(this)"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Grid ke andar side par card append (add) karna
+            cardsContainer.insertAdjacentHTML('beforeend', cardHTML);
+            
+            // Input field ko clear karna
+            taskInput.value = "";
+        }
+
+        // Button click event listener
+        addTaskBtn.addEventListener('click', createNewTask);
+
+        // Enter key press event listener
+        taskInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                createNewTask();
+            }
+        });
+
+        // Card complete (Green checkmark toggle) karne ka logic
+        function toggleComplete(button) {
+            const icon = button.querySelector('i');
+            const cardText = button.closest('.task-card').querySelector('.card-text');
+            
+            if (icon.classList.contains('fa-regular')) {
+                icon.className = 'fa-solid fa-circle-check';
+                button.style.color = '#34d399';
+                cardText.style.textDecoration = 'line-through';
+                cardText.style.opacity = '0.5';
+            } else {
+                icon.className = 'fa-regular fa-circle-check';
+                button.style.color = 'var(--text-muted)';
+                cardText.style.textDecoration = 'none';
+                cardText.style.opacity = '1';
+            }
+        }
+
+        // Card delete karne ka logic
+        function deleteCard(button) {
+            const card = button.closest('.task-card');
+            card.style.opacity = '0';
+            card.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                card.remove();
+            }, 300);
+        }
+    </script>
 
 </body>
 </html>

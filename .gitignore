@@ -1,2 +1,6 @@
-# Terraform local state and cache\n/infra/.terraform/\n/infra/terraform.tfstate\n/infra/terraform.tfstate.backup\n
-/infra/.terraform.lock.hcl\n
+# Terraform local state and cache
+/infra/.terraform/
+/infra/terraform.tfstate
+/infra/terraform.tfstate.backup
+/infra/.terraform.lock.hcl
+
