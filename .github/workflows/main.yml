@@ -19,37 +19,7 @@ jobs:
           username: ${{ secrets.VM_USER }}
           password: ${{ secrets.VM_PASSWORD }}
           script: |
-            echo "Successfully connected to Azure VM Server!"
-            sudo apt-get update -y
-            sudo apt-get install -y docker.io git
-            
-            # Purana folder delete karke fresh code pull karenge
-            rm -rf polyglot-devops-project
-            
-            # Fresh clone from your repository
-            git clone https://github.com/243459-del/polyglot-devops-project.git
-            
-            echo "Deployment Completed Successfully on Azure Cloud Machine!"
-script: |
-            echo "Successfully connected to Azure VM Server!"
-            sudo apt-get update -y
-            sudo apt-get install -y docker.io git
-            
-            if [ -d "polyglot-devops-project" ]; then
-              cd polyglot-devops-project
-              echo "Stopping old containers..."
-              sudo DOCKER_API_VERSION=1.44 /usr/local/bin/docker-compose down || true
-              cd ..
-            fi
-
-            rm -rf polyglot-devops-project
-            
-            echo "Cloning fresh repository..."
-            git clone https://github.com/243459-del/polyglot-devops-project.git
-            
-            cd polyglot-devops-project
-            echo "Cleaning unused docker cache..."
-            sudo docker system prune -f
-            
-            echo "Starting brand new docker containers..."
-            sudo DOCKER_API_VERSION=1.44 /usr/local/bin/docker-compose up -d --build --force-recreate
+            cd /var/www/my-app # Aapka VM par project path
+            git pull origin main
+            npm install --production
+            pm2 restart all # Ya jo bhi aap server reload karne ke liye use karte hain
