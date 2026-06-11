@@ -19,7 +19,29 @@ jobs:
           username: ${{ secrets.VM_USER }}
           password: ${{ secrets.VM_PASSWORD }}
           script: |
-            cd /var/www/my-app # Aapka VM par project path
-            git pull origin main
-            npm install --production
-            pm2 restart all # Ya jo bhi aap server reload karne ke liye use karte hain
+            echo "Successfully connected to Azure VM Server!"
+            sudo apt-get update -y
+            sudo apt-get install -y docker.io git
+            
+            # 1. Purane containers ko dhang se stop karna
+            if [ -d "polyglot-devops-project" ]; then
+              cd polyglot-devops-project
+              echo "Stopping old containers..."
+              sudo DOCKER_API_VERSION=1.44 /usr/local/bin/docker-compose down || true
+              cd ..
+            fi
+
+            # 2. Fresh copy pull karne ke liye delete karna
+            rm -rf polyglot-devops-project
+            
+            # 3. Clean fresh clone
+            echo "Cloning fresh repository..."
+            git clone https://github.com/243459-del/polyglot-devops-project.git
+            
+            # 4. Run containers with cache clear and proper version patch
+            cd polyglot-devops-project
+            echo "Cleaning unused docker cache..."
+            sudo docker system prune -f
+            
+            echo "Starting new docker containers..."
+            sudo DOCKER_API_VERSION=1.44 /usr/local/bin/docker-compose up -d --build --force-recreate
